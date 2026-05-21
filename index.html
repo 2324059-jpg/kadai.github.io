@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人生設計シミュレーター | Life Architect</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #game-container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center; }
+        h1 { color: #333; font-size: 1.5rem; }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 1.5rem; font-weight: bold; color: #555; }
+        .question { font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.6; color: #444; }
+        .choice-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #007bff; background: white; color: #007bff; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .choice-btn:hover { background: #007bff; color: white; }
+        #result { display: none; }
+        .rank { font-size: 1.3rem; color: #e91e63; font-weight: bold; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="game-ui">
+        <h1 id="chapter-title">第1章：幼少期</h1>
+        <div class="stats">
+            <span>知力: <span id="stat-int">0</span></span>
+            <span>共感: <span id="stat-emp">0</span></span>
+            <span>度胸: <span id="stat-mox">0</span></span>
+        </div>
+        <div class="question" id="question-text">ブランコが空いています。どうする？</div>
+        <div id="choices">
+            </div>
+    </div>
+
+    <div id="result">
+        <h1>あなたの成人式</h1>
+        <div id="result-desc"></div>
+        <button class="choice-btn" onclick="location.reload()">人生をやり直す</button>
+    </div>
+</div>
+
+<script>
+    const script = [
+        {
+            chapter: "第1章：幼少期 (7歳)",
+            q: "放課後の校庭。一番人気のブランコが空きましたが、隣で下級生が泣きそうに見ています。",
+            options: [
+                { text: "ダッシュで確保！早い者勝ちだ", stats: { mox: 5 } },
+                { text: "「交代で使おう」と提案する", stats: { int: 5 } },
+                { text: "譲って自分はアリの観察をする", stats: { emp: 5 } }
+            ]
+        },
+        {
+            chapter: "第2章：思春期 (15歳)",
+            q: "明日は大事な期末テスト。夜、憧れの先輩から「今から公園で話せない？」と連絡が。",
+            options: [
+                { text: "スマホを切って猛勉強する", stats: { int: 10 } },
+                { text: "窓から抜け出して会いに行く", stats: { mox: 10 } },
+                { text: "「30分だけなら」と相談に乗る", stats: { emp: 10 } }
+            ]
+        },
+        {
+            chapter: "第3章：運命の選択 (20歳)",
+            q: "海外インターンのチャンス！でも恋人や友人と離ればなれになってしまいます。",
+            options: [
+                { text: "迷わず応募。キャリアが大事だ", stats: { int: 10, mox: 10 } },
+                { text: "辞退。今の人間関係を優先する", stats: { emp: 20 } },
+                { text: "恋人も連れて行く方法を交渉する", stats: { int: 10, emp: 5, mox: 5 } }
+            ]
+        }
+    ];
+
+    let currentStep = 0;
+    let stats = { int: 0, emp: 0, mox: 0 };
+
+    function renderStep() {
+        if (currentStep >= script.length) {
+            showResult();
+            return;
+        }
+        const data = script[currentStep];
+        document.getElementById('chapter-title').innerText = data.chapter;
+        document.getElementById('question-text').innerText = data.q;
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+
+        data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(opt.stats);
+            choicesDiv.appendChild(btn);
+        });
+    }
+
+    function selectOption(plusStats) {
+        for (let key in plusStats) {
+            stats[key] += plusStats[key];
+        }
+        updateStatsUI();
+        currentStep++;
+        renderStep();
+    }
+
+    function updateStatsUI() {
+        document.getElementById('stat-int').innerText = stats.int;
+        document.getElementById('stat-emp').innerText = stats.emp;
+        document.getElementById('stat-mox').innerText = stats.mox;
+    }
+
+    function showResult() {
+        document.getElementById('game-ui').style.display = 'none';
+        const resDiv = document.getElementById('result');
+        const desc = document.getElementById('result-desc');
+        resDiv.style.display = 'block';
+
+        let title = "";
+        let detail = "";
+
+        if (stats.int >= stats.emp && stats.int >= stats.mox) {
+            title = "【孤高のリーダー】";
+            detail = "高い知性で道を切り開くエリート。合理的すぎてたまに冷たいと言われるけど、実績はピカイチ！";
+        } else if (stats.mox >= stats.int && stats.mox >= stats.emp) {
+            title = "【自由奔放な冒険家】";
+            detail = "リスクを恐れない行動派。世界中を飛び回るエネルギッシュな大人になりました！";
+        } else {
+            title = "【愛される調整役】";
+            detail = "共感力の塊。あなたの周りにはいつも人が集まり、穏やかな幸せを築いています。";
+        }
+
+        desc.innerHTML = `<div class="rank">${title}</div><p>${detail}</p>`;
+    }
+
+    renderStep();
+</script>
+
+</body>
+</html>
+クラスのコメント
